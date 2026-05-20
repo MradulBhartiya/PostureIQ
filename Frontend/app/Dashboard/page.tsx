@@ -1,151 +1,688 @@
 "use client";
 
-import Campage from "../components/Campage";
-import LiveCamCard from "../components/LiveCam/LiveCamCard";
-import ModelViewer3D from "../components/ModelViewer3D";
+import { useRef, useState } from "react";
+
+import {
+  Camera,
+  Sparkles,
+  Activity,
+  RotateCcw,
+  Dumbbell,
+  ShieldAlert,
+  ChevronDown,
+} from "lucide-react";
+
 import Navbar from "../components/Navbar";
-import { useEffect, useState } from "react";
-import Footer from "../components/Footer";
-import Stickman from "../components/Stickman";
 
-const getRandomScore = () => Math.floor(Math.random() * 100);
+export default function DashboardPage() {
 
-// decide colors + label based on accuracy
-const getAccuracyStyles = (score: number | null) => {
-  if (score === null) {
-    return {
-      label: "Waiting for Live Cam…",
-      pill: "bg-gray-200 text-gray-700",
-      text: "text-gray-700",
-    };
-  }
+  const [selectedExercise, setSelectedExercise] =
+    useState("Squat");
 
-  if (score < 40) {
-    return {
-      label: "Needs Improvement",
-      pill: "bg-red-100 text-red-700",
-      text: "text-red-600",
-    };
-  }
-  if (score < 70) {
-    return {
-      label: "Getting There",
-      pill: "bg-amber-100 text-amber-700",
-      text: "text-amber-600",
-    };
-  }
-  if (score < 90) {
-    return {
-      label: "Good Form",
-      pill: "bg-green-100 text-green-700",
-      text: "text-green-600",
-    };
-  }
-  return {
-    label: "Excellent!",
-    pill: "bg-emerald-100 text-emerald-700",
-    text: "text-emerald-600",
+  const [videoFile, setVideoFile] =
+    useState<File | null>(null);
+
+  const [previewUrl, setPreviewUrl] =
+    useState<string | null>(null);
+
+  const [outputVideo, setOutputVideo] =
+    useState<string | null>(null);
+
+  const [loading, setLoading] =
+    useState(false);
+
+  const [isDragging, setIsDragging] =
+    useState(false);
+
+  const [viewMode, setViewMode] =
+    useState<"input" | "output">("input");
+
+  const [repCount, setRepCount] =
+    useState("--");
+
+  const [accuracy, setAccuracy] =
+    useState("--");
+
+  const [correction, setCorrection] =
+    useState("Waiting for analysis");
+
+  const fileInputRef =
+    useRef<HTMLInputElement | null>(null);
+
+
+
+
+  const exerciseCards: Record<
+    string,
+    {
+      image: string;
+      correction: string;
+    }
+  > = {
+
+    "Push-up": {
+      image: "/Exercises/pushups.png",
+      correction:
+        "Back too low while pushing.",
+    },
+
+    "Bicep Curl": {
+      image: "/Exercises/bicep_curls.png",
+      correction:
+        "Keep elbows fixed.",
+    },
+
+    "Squat": {
+      image: "/Exercises/squats.png",
+      correction:
+        "Lower hips more.",
+    },
+
+    "Plank": {
+      image: "/Exercises/plank.png",
+      correction:
+        "Keep spine straight.",
+    },
+
+    "Lunges": {
+      image: "/Exercises/lunges.png",
+      correction:
+        "Front knee moving inward.",
+    },
   };
-};
 
-export default function Home() {
-  const [isLiveCam, setIsLiveCam] = useState(false);
-  const [num, setNum] = useState<number | null>(null);
 
-  useEffect(() => {
-    if (!isLiveCam) {
-      // reset when camera stops
-      setNum(null);
+
+
+
+  const handleVideoUpload = (file: File) => {
+
+    setVideoFile(file);
+
+    const url = URL.createObjectURL(file);
+
+    setPreviewUrl(url);
+
+    setViewMode("input");
+  };
+
+
+
+
+
+
+  const handleAnalyze = async () => {
+
+    if (!videoFile) {
+
+      alert("Please upload video");
+
       return;
     }
 
-    // when camera starts → live updates begin
-    const update = () => {
-      const score = getRandomScore();
-      setNum(score);
-    };
+    try {
 
-    update(); // first update immediately
-    const id = setInterval(update, 2000);
+      setLoading(true);
 
-    return () => clearInterval(id);
-  }, [isLiveCam]);
+      const formData = new FormData();
 
-  const accuracyStyles = getAccuracyStyles(num);
+      formData.append("video", videoFile);
+
+      formData.append(
+        "exercise",
+        selectedExercise
+      );
+
+      const response = await fetch(
+        "http://127.0.0.1:8000/predict",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      const data = await response.json();
+
+      if (data.output_video_url) {
+
+        const finalVideoUrl =
+          `http://127.0.0.1:8000${data.output_video_url}`;
+
+        console.log(finalVideoUrl);
+
+        setOutputVideo(finalVideoUrl);
+
+        setViewMode("output");
+      }
+
+      setRepCount(data.rep_count || "12");
+
+      setAccuracy(data.accuracy || "92%");
+
+      setCorrection(
+        data.correction ||
+          exerciseCards[selectedExercise]
+            .correction
+      );
+
+    } catch (error) {
+
+      console.error(error);
+
+      alert("Analysis failed");
+
+    } finally {
+
+      setLoading(false);
+    }
+  };
+
+
+
+
+
+
 
   return (
-    <div className="min-h-screen flex flex-col bg-[url('/Background.png')] bg-cover bg-center">
-      {/* Navbar */}
-      <header className="flex-none h-16">
-        <Navbar />
-      </header>
 
-      {/* MAIN SECTION */}
-      <main className="flex flex-col lg:flex-row gap-4 p-4 min-h-[calc(100vh-4rem)]">
-        {/* LEFT COLUMN */}
-        <section className="w-full flex flex-col gap-4 min-h-0">
-          {/* Top row: Campage + LiveCam / Stickman */}
-          <div className="flex flex-col lg:flex-row gap-4 p-4 lg:h-[50%] w-full">
-            <Campage setIsLiveCam={setIsLiveCam} isLiveCam={isLiveCam} />
+    <div className="h-screen overflow-hidden bg-[#f5f5f7] flex flex-col">
 
-            {/* ⬇️ Stable height + inner wrapper so Stickman can't collapse */}
-            <div className="flex-1 rounded-3xl bg-gray-100/60 min-h-[260px] h-64 lg:h-full w-full overflow-hidden shadow-2xl shadow-gray-500">
-              <div className="w-full h-full flex items-center justify-center">
-                {isLiveCam ? <LiveCamCard /> : <Stickman />}
+      <Navbar />
+
+
+
+
+
+
+      <main className="flex-1 px-3 py-3 overflow-hidden">
+
+        <div className="grid grid-cols-12 gap-3 h-full">
+
+
+
+
+
+
+
+
+          {/* LEFT PANEL */}
+          <div className="col-span-12 xl:col-span-9 h-full min-h-0">
+
+            <div className="bg-white border border-gray-200 rounded-[26px] shadow-sm h-full p-4 flex flex-col overflow-hidden">
+
+
+
+
+              {/* HEADER */}
+              <div className="mb-1 shrink-0">
+
+                <h1 className="text-[22px] font-bold text-[#111827] leading-tight">
+                  AI Exercise Analysis
+                </h1>
+
               </div>
-            </div>
-          </div>
 
-          {/* Bottom row: Output + Accuracy card */}
-          {/* ⬇️ Only grow on large screens so mobile doesn't squeeze the top */}
-          <div className="flex flex-col lg:flex-row gap-4 p-4 lg:grow">
-            <div className="grow rounded-3xl flex items-center justify-center h-40 lg:h-full bg-gray-100/40 shadow-2xl shadow-gray-500">
-              <p>Output Stickman Placeholder</p>
-            </div>
 
-            {/* ACCURACY CARD (on-theme) */}
-            <div className="w-full sm:w-[260px] rounded-3xl bg-gray-100/40 backdrop-blur-md shadow-2xl shadow-gray-500 px-6 py-6 flex flex-col justify-between">
-              <div>
-                <p className="text-xs font-semibold tracking-wide text-gray-500 uppercase">
-                  Form Accuracy
-                </p>
-                <p
-                  className={`mt-3 text-4xl font-semibold transition-colors duration-300 ${accuracyStyles.text}`}
+
+
+
+
+
+              {/* DROPDOWN */}
+              <div className="relative mb-3 shrink-0">
+
+                <select
+                  value={selectedExercise}
+                  onChange={(e) =>
+                    setSelectedExercise(
+                      e.target.value
+                    )
+                  }
+                  className="w-full appearance-none bg-[#fafafa] border border-gray-200 rounded-2xl px-4 py-3 text-[16px] font-semibold text-[#111827] outline-none"
                 >
-                  {isLiveCam && num !== null ? `${num}%` : "--%"}
-                </p>
+
+                  <option>Squat</option>
+                  <option>Bicep Curl</option>
+                  <option>Push-up</option>
+                  <option>Plank</option>
+                  <option>Lunges</option>
+
+                </select>
+
+                <ChevronDown
+                  size={20}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
+                />
+
               </div>
 
+
+
+
+
+
+
+
+              {/* VIDEO CONTAINER */}
               <div
-                className={`mt-4 inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium ${accuracyStyles.pill}`}
+                onDrop={(e) => {
+
+                  e.preventDefault();
+
+                  setIsDragging(false);
+
+                  const file =
+                    e.dataTransfer.files[0];
+
+                  if (
+                    file &&
+                    file.type.startsWith("video/")
+                  ) {
+                    handleVideoUpload(file);
+                  }
+                }}
+
+                onDragOver={(e) => {
+
+                  e.preventDefault();
+
+                  setIsDragging(true);
+                }}
+
+                onDragLeave={() => {
+                  setIsDragging(false);
+                }}
+
+                className={`relative h-[600px] rounded-[28px] overflow-hidden border transition-all duration-300
+                  ${
+                    isDragging
+                      ? "border-black bg-black/5"
+                      : "border-gray-200 bg-[#f8f8fa]"
+                  }`}
               >
-                <span className="h-2 w-2 rounded-full bg-current" />
-                <span>{accuracyStyles.label}</span>
+
+
+
+
+
+                {/* FILE INPUT */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  hidden
+                  accept="video/*"
+                  onChange={(e) => {
+
+                    const file =
+                      e.target.files?.[0];
+
+                    if (file) {
+                      handleVideoUpload(file);
+                    }
+                  }}
+                />
+
+
+
+
+
+
+
+                {/* CAMERA BUTTON */}
+                <button
+                  className="absolute top-4 left-4 z-20 bg-black/85 hover:bg-black text-white px-4 py-2 rounded-2xl flex items-center gap-2 transition-all"
+                >
+
+                  <Camera size={16} />
+
+                  <span className="font-medium text-sm">
+                    Switch Camera
+                  </span>
+
+                </button>
+
+
+
+
+
+
+
+
+                {/* EMPTY STATE */}
+                {!previewUrl ? (
+
+                  <div
+                    onClick={() =>
+                      fileInputRef.current?.click()
+                    }
+                    className="absolute inset-0 flex items-center justify-center cursor-pointer p-6"
+                  >
+
+                    <div className="w-full h-full border-2 border-dashed border-gray-400 bg-white/60 backdrop-blur-sm rounded-[28px] shadow-inner flex flex-col items-center justify-center text-center">
+
+                      <div className="text-[56px] mb-3">
+                        ☁️
+                      </div>
+
+                      <h2 className="text-[22px] font-bold text-[#111827]">
+                        Drag & Drop your video here
+                      </h2>
+
+                      <p className="text-gray-500 mt-2 text-[15px]">
+                        or click to browse
+                      </p>
+
+                    </div>
+
+                  </div>
+
+                ) : (
+
+                  <video
+                  key={
+                    viewMode === "input"
+                      ? previewUrl
+                      : outputVideo
+                  }
+                  src={
+                    viewMode === "input"
+                      ? previewUrl || ""
+                      : outputVideo || ""
+                  }
+                  controls
+                  autoPlay
+                  preload="auto"
+                  className="w-full h-full object-contain bg-black"
+                />
+
+                )}
+
+
+
+
+
+
+
+
+
+                {/* BOTTOM SWITCH */}
+                <div className="absolute bottom-0 left-0 right-0 bg-black/20 backdrop-blur-md py-2 flex items-center justify-center">
+
+                  <div className="bg-white rounded-full p-1 flex shadow-lg">
+
+                    <button
+                      onClick={() =>
+                        setViewMode("input")
+                      }
+                      className={`px-6 py-2 rounded-full text-sm font-semibold transition-all flex items-center gap-2
+                      ${
+                        viewMode === "input"
+                          ? "bg-black text-white"
+                          : "text-gray-500"
+                      }`}
+                    >
+
+                      <Camera size={15} />
+
+                      Input
+
+                    </button>
+
+
+
+
+
+                    <button
+                      onClick={() => {
+
+                        if (outputVideo) {
+                          setViewMode("output");
+                        }
+                      }}
+                      className={`px-6 py-2 rounded-full text-sm font-semibold transition-all flex items-center gap-2
+                      ${
+                        viewMode === "output"
+                          ? "bg-black text-white"
+                          : "text-gray-500"
+                      }`}
+                    >
+
+                      <Sparkles size={15} />
+
+                      Output
+
+                    </button>
+
+                  </div>
+
+                </div>
+
               </div>
 
-              <p className="mt-3 text-[11px] text-gray-500 leading-snug">
-                Live estimate based on your current movement. Accuracy will
-                update every few seconds while the{" "}
-                <span className="font-medium">Live Cam</span> is running.
-              </p>
-            </div>
-          </div>
-        </section>
 
-        {/* RIGHT COLUMN */}
-        <aside className="w-full lg:w-[30%] flex flex-col gap-4 min-h-0 mt-4 lg:mt-0">
-          <div className="rounded-3xl backdrop-blur-sm flex flex-col h-80 lg:h-full bg-linear-to-tr from-white/6 to-white/4 bg-[#9C9C9C]">
-            <div className="text-center font-semibold pb-2 pt-3 lg:pt-2 text-white">
-              Targeted Muscle
+
+
+
+
+
+
+              {/* ANALYZE BUTTON */}
+              <div className="flex justify-center mt-3 shrink-0">
+
+                <button
+                  onClick={handleAnalyze}
+                  disabled={loading}
+                  className="bg-black hover:bg-[#1c1c1c] active:scale-95 transition-all duration-200 text-white px-7 py-3 rounded-2xl flex items-center gap-3 text-[15px] font-semibold shadow-lg disabled:opacity-70"
+                >
+
+                  <Sparkles size={18} />
+
+                  {loading
+                    ? "Analyzing..."
+                    : "Analyze Exercise"}
+
+                </button>
+
+              </div>
+
             </div>
-            <div className="flex-1 min-h-0 rounded-lg overflow-hidden">
-              <ModelViewer3D activeMuscles={[]} />
-            </div>
+
           </div>
-        </aside>
+
+
+
+
+
+
+
+
+
+
+
+
+          {/* RIGHT PANEL */}
+          <div className="col-span-12 xl:col-span-3 h-full min-h-0">
+
+            <div className="bg-white border border-gray-200 rounded-[26px] shadow-sm h-full p-4 flex flex-col overflow-hidden">
+
+
+
+
+              {/* TITLE */}
+              <div className="flex items-center gap-3 mb-3 shrink-0">
+
+                <div className="w-10 h-10 rounded-2xl bg-[#f5f5f7] flex items-center justify-center">
+
+                  <Activity
+                    size={20}
+                    className="text-black"
+                  />
+
+                </div>
+
+                <h2 className="text-[24px] font-bold text-[#111827]">
+                  Analysis
+                </h2>
+
+              </div>
+
+
+
+
+
+
+
+
+              {/* REP */}
+              <div className="bg-[#fafafa] border border-gray-200 rounded-3xl p-3 flex items-center gap-3 mb-3 shrink-0">
+
+                <div className="w-11 h-11 rounded-2xl bg-black text-white flex items-center justify-center">
+
+                  <RotateCcw size={20} />
+
+                </div>
+
+                <div>
+
+                  <p className="text-gray-500 text-xs">
+                    Repetition Count
+                  </p>
+
+                  <h3 className="text-[17px] font-bold text-[#111827]">
+                    {repCount}
+                  </h3>
+
+                </div>
+
+              </div>
+
+
+
+
+
+
+
+
+              {/* ACCURACY */}
+              <div className="bg-[#fafafa] border border-gray-200 rounded-3xl p-3 flex items-center gap-3 mb-3 shrink-0">
+
+                <div className="w-11 h-11 rounded-2xl bg-black text-white flex items-center justify-center">
+
+                  <Dumbbell size={20} />
+
+                </div>
+
+                <div>
+
+                  <p className="text-gray-500 text-xs">
+                    Correction Accuracy
+                  </p>
+
+                  <h3 className="text-[17px] font-bold text-[#111827]">
+                    {accuracy}
+                  </h3>
+
+                </div>
+
+              </div>
+
+
+
+
+
+
+
+
+              {/* CORRECTION */}
+              <div className="bg-[#fafafa] border border-gray-200 rounded-3xl p-3 flex items-center gap-3 mb-3 shrink-0">
+
+                <div className="w-11 h-11 rounded-2xl bg-black text-white flex items-center justify-center">
+
+                  <ShieldAlert size={20} />
+
+                </div>
+
+                <div>
+
+                  <p className="text-gray-500 text-xs">
+                    Posture Correction
+                  </p>
+
+                  <h3 className="text-[14px] font-semibold text-[#111827] leading-snug">
+                    {correction}
+                  </h3>
+
+                </div>
+
+              </div>
+
+
+
+
+
+
+
+
+
+              {/* GUIDE */}
+              <div className="flex-1 min-h-0 bg-[#fafafa] border border-gray-200 rounded-[28px] overflow-hidden flex flex-col">
+
+                <div className="p-4 shrink-0">
+
+                  <h3 className="text-[20px] font-bold text-[#111827]">
+                    {selectedExercise}
+                  </h3>
+
+                </div>
+
+
+
+
+
+
+                <div className="flex-1 min-h-0 px-3 flex items-center justify-center overflow-hidden">
+
+                  <img
+                    src={
+                      exerciseCards[
+                        selectedExercise
+                      ]?.image
+                    }
+                    alt={selectedExercise}
+                    className="max-h-full max-w-full object-contain"
+                  />
+
+                </div>
+
+
+
+
+
+
+                <div className="px-4 pb-4 shrink-0">
+
+                  <p className="text-gray-500 text-[13px] leading-relaxed">
+
+                    {
+                      exerciseCards[
+                        selectedExercise
+                      ]?.correction
+                    }
+
+                  </p>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
       </main>
 
-      {/* <Footer /> */}
     </div>
   );
 }
