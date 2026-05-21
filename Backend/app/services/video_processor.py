@@ -86,7 +86,7 @@ def process_video(input_path: str, output_path: str):
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     fps = int(cap.get(cv2.CAP_PROP_FPS))
 
-    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+    fourcc = cv2.VideoWriter_fourcc(*"avc1")
 
     out = cv2.VideoWriter(
         output_path,

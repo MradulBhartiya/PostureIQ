@@ -6,6 +6,7 @@ from app.routers.predict import router as predict_router
 
 app = FastAPI()
 
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -18,5 +19,14 @@ app.add_middleware(
 app.include_router(predict_router)
 
 # STATIC FOLDERS
-app.mount("/outputs", StaticFiles(directory="app/outputs"), name="outputs")
-app.mount("/uploads", StaticFiles(directory="app/uploads"), name="uploads")
+app.mount(
+    "/outputs",
+    StaticFiles(directory="app/outputs"),
+    name="outputs"
+)
+
+app.mount(
+    "/uploads",
+    StaticFiles(directory="app/uploads"),
+    name="uploads"
+)
