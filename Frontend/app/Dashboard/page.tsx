@@ -17,7 +17,7 @@ import Navbar from "../components/Navbar";
 export default function DashboardPage() {
 
   const [selectedExercise, setSelectedExercise] =
-    useState("Squat");
+    useState("Bicep Curl");
 
   const [videoFile, setVideoFile] =
     useState<File | null>(null);
@@ -37,20 +37,23 @@ export default function DashboardPage() {
   const [viewMode, setViewMode] =
     useState<"input" | "output">("input");
 
+  // -----------------------------------
+  // REAL ANALYTICS STATES
+  // -----------------------------------
   const [repCount, setRepCount] =
-    useState("--");
+    useState<string>("--");
 
   const [accuracy, setAccuracy] =
-    useState("--");
+    useState<string>("--");
 
   const [correction, setCorrection] =
-    useState("Waiting for analysis");
+    useState<string>("Waiting for analysis");
+
+  const [postureStatus, setPostureStatus] =
+    useState<string>("--");
 
   const fileInputRef =
     useRef<HTMLInputElement | null>(null);
-
-
-
 
   const exerciseCards: Record<
     string,
@@ -63,39 +66,40 @@ export default function DashboardPage() {
     "Push-up": {
       image: "/Exercises/pushups.png",
       correction:
-        "Back too low while pushing.",
+        "Maintain straight body posture.",
     },
 
     "Bicep Curl": {
       image: "/Exercises/bicep_curls.png",
       correction:
-        "Keep elbows fixed.",
+        "Keep elbows fixed and controlled.",
     },
 
     "Squat": {
       image: "/Exercises/squats.png",
       correction:
-        "Lower hips more.",
+        "Lower hips and keep chest up.",
     },
 
     "Plank": {
       image: "/Exercises/plank.png",
       correction:
-        "Keep spine straight.",
+        "Keep spine neutral and core tight.",
     },
 
     "Lunges": {
       image: "/Exercises/lunges.png",
       correction:
-        "Front knee moving inward.",
+        "Front knee should not collapse inward.",
     },
   };
 
-
-
-
-
-  const handleVideoUpload = (file: File) => {
+  // -----------------------------------
+  // Upload Handler
+  // -----------------------------------
+  const handleVideoUpload = (
+    file: File
+  ) => {
 
     setVideoFile(file);
 
@@ -106,11 +110,34 @@ export default function DashboardPage() {
     setViewMode("input");
   };
 
+  // -----------------------------------
+  // Exercise Mapping
+  // -----------------------------------
+  const getBackendExerciseName = (
+    exercise: string
+  ) => {
 
+    if (exercise === "Bicep Curl")
+      return "bicep";
 
+    if (exercise === "Squat")
+      return "squat";
 
+    if (exercise === "Plank")
+      return "plank";
 
+    if (exercise === "Lunges")
+      return "lunge";
 
+    if (exercise === "Push-up")
+      return "pushup";
+
+    return "bicep";
+  };
+
+  // -----------------------------------
+  // Analyze Video
+  // -----------------------------------
   const handleAnalyze = async () => {
 
     if (!videoFile) {
@@ -126,11 +153,16 @@ export default function DashboardPage() {
 
       const formData = new FormData();
 
-      formData.append("video", videoFile);
+      formData.append(
+        "video",
+        videoFile
+      );
 
       formData.append(
         "exercise",
-        selectedExercise
+        getBackendExerciseName(
+          selectedExercise
+        )
       );
 
       const response = await fetch(
@@ -143,26 +175,41 @@ export default function DashboardPage() {
 
       const data = await response.json();
 
+      console.log(data);
+
+      // -----------------------------------
+      // Output Video
+      // -----------------------------------
       if (data.output_video_url) {
 
         const finalVideoUrl =
           `http://127.0.0.1:8000${data.output_video_url}`;
-
-        console.log(finalVideoUrl);
 
         setOutputVideo(finalVideoUrl);
 
         setViewMode("output");
       }
 
-      setRepCount(data.rep_count || "12");
+      // -----------------------------------
+      // REAL ANALYTICS
+      // -----------------------------------
+      setRepCount(
+        String(data.rep_count ?? "--")
+      );
 
-      setAccuracy(data.accuracy || "92%");
+      setAccuracy(
+        data.accuracy
+          ? `${data.accuracy}%`
+          : "--"
+      );
 
       setCorrection(
-        data.correction ||
-          exerciseCards[selectedExercise]
-            .correction
+        data.correction ??
+        "No correction available"
+      );
+
+      setPostureStatus(
+        data.posture_status ?? "--"
       );
 
     } catch (error) {
@@ -177,41 +224,20 @@ export default function DashboardPage() {
     }
   };
 
-
-
-
-
-
-
   return (
 
     <div className="h-screen overflow-hidden bg-[#f5f5f7] flex flex-col">
 
       <Navbar />
 
-
-
-
-
-
       <main className="flex-1 px-3 py-3 overflow-hidden">
 
         <div className="grid grid-cols-12 gap-3 h-full">
-
-
-
-
-
-
-
 
           {/* LEFT PANEL */}
           <div className="col-span-12 xl:col-span-9 h-full min-h-0">
 
             <div className="bg-white border border-gray-200 rounded-[26px] shadow-sm h-full p-4 flex flex-col overflow-hidden">
-
-
-
 
               {/* HEADER */}
               <div className="mb-1 shrink-0">
@@ -221,12 +247,6 @@ export default function DashboardPage() {
                 </h1>
 
               </div>
-
-
-
-
-
-
 
               {/* DROPDOWN */}
               <div className="relative mb-3 shrink-0">
@@ -241,8 +261,8 @@ export default function DashboardPage() {
                   className="w-full appearance-none bg-[#fafafa] border border-gray-200 rounded-2xl px-4 py-3 text-[16px] font-semibold text-[#111827] outline-none"
                 >
 
-                  <option>Squat</option>
                   <option>Bicep Curl</option>
+                  <option>Squat</option>
                   <option>Push-up</option>
                   <option>Plank</option>
                   <option>Lunges</option>
@@ -255,13 +275,6 @@ export default function DashboardPage() {
                 />
 
               </div>
-
-
-
-
-
-
-
 
               {/* VIDEO CONTAINER */}
               <div
@@ -301,10 +314,6 @@ export default function DashboardPage() {
                   }`}
               >
 
-
-
-
-
                 {/* FILE INPUT */}
                 <input
                   ref={fileInputRef}
@@ -322,12 +331,6 @@ export default function DashboardPage() {
                   }}
                 />
 
-
-
-
-
-
-
                 {/* CAMERA BUTTON */}
                 <button
                   className="absolute top-4 left-4 z-20 bg-black/85 hover:bg-black text-white px-4 py-2 rounded-2xl flex items-center gap-2 transition-all"
@@ -340,13 +343,6 @@ export default function DashboardPage() {
                   </span>
 
                 </button>
-
-
-
-
-
-
-
 
                 {/* EMPTY STATE */}
                 {!previewUrl ? (
@@ -379,31 +375,23 @@ export default function DashboardPage() {
                 ) : (
 
                   <video
-                  key={
-                    viewMode === "input"
-                      ? previewUrl
-                      : outputVideo
-                  }
-                  src={
-                    viewMode === "input"
-                      ? previewUrl || ""
-                      : outputVideo || ""
-                  }
-                  controls
-                  autoPlay
-                  preload="auto"
-                  className="w-full h-full object-contain bg-black"
-                />
+                    key={
+                      viewMode === "input"
+                        ? previewUrl
+                        : outputVideo
+                    }
+                    src={
+                      viewMode === "input"
+                        ? previewUrl || ""
+                        : outputVideo || ""
+                    }
+                    controls
+                    autoPlay
+                    preload="auto"
+                    className="w-full h-full object-contain bg-black"
+                  />
 
                 )}
-
-
-
-
-
-
-
-
 
                 {/* BOTTOM SWITCH */}
                 <div className="absolute bottom-0 left-0 right-0 bg-black/20 backdrop-blur-md py-2 flex items-center justify-center">
@@ -427,10 +415,6 @@ export default function DashboardPage() {
                       Input
 
                     </button>
-
-
-
-
 
                     <button
                       onClick={() => {
@@ -459,13 +443,6 @@ export default function DashboardPage() {
 
               </div>
 
-
-
-
-
-
-
-
               {/* ANALYZE BUTTON */}
               <div className="flex justify-center mt-3 shrink-0">
 
@@ -489,24 +466,10 @@ export default function DashboardPage() {
 
           </div>
 
-
-
-
-
-
-
-
-
-
-
-
           {/* RIGHT PANEL */}
           <div className="col-span-12 xl:col-span-3 h-full min-h-0">
 
             <div className="bg-white border border-gray-200 rounded-[26px] shadow-sm h-full p-4 flex flex-col overflow-hidden">
-
-
-
 
               {/* TITLE */}
               <div className="flex items-center gap-3 mb-3 shrink-0">
@@ -525,13 +488,6 @@ export default function DashboardPage() {
                 </h2>
 
               </div>
-
-
-
-
-
-
-
 
               {/* REP */}
               <div className="bg-[#fafafa] border border-gray-200 rounded-3xl p-3 flex items-center gap-3 mb-3 shrink-0">
@@ -556,13 +512,6 @@ export default function DashboardPage() {
 
               </div>
 
-
-
-
-
-
-
-
               {/* ACCURACY */}
               <div className="bg-[#fafafa] border border-gray-200 rounded-3xl p-3 flex items-center gap-3 mb-3 shrink-0">
 
@@ -585,13 +534,6 @@ export default function DashboardPage() {
                 </div>
 
               </div>
-
-
-
-
-
-
-
 
               {/* CORRECTION */}
               <div className="bg-[#fafafa] border border-gray-200 rounded-3xl p-3 flex items-center gap-3 mb-3 shrink-0">
@@ -616,14 +558,6 @@ export default function DashboardPage() {
 
               </div>
 
-
-
-
-
-
-
-
-
               {/* GUIDE */}
               <div className="flex-1 min-h-0 bg-[#fafafa] border border-gray-200 rounded-[28px] overflow-hidden flex flex-col">
 
@@ -634,11 +568,6 @@ export default function DashboardPage() {
                   </h3>
 
                 </div>
-
-
-
-
-
 
                 <div className="flex-1 min-h-0 px-3 flex items-center justify-center overflow-hidden">
 
@@ -654,20 +583,15 @@ export default function DashboardPage() {
 
                 </div>
 
-
-
-
-
-
                 <div className="px-4 pb-4 shrink-0">
 
                   <p className="text-gray-500 text-[13px] leading-relaxed">
 
-                    {
-                      exerciseCards[
-                        selectedExercise
-                      ]?.correction
-                    }
+                    Status:
+                    {" "}
+                    <span className="font-semibold text-black">
+                      {postureStatus}
+                    </span>
 
                   </p>
 
