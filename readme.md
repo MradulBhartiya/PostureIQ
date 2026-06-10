@@ -5,7 +5,7 @@
 Transform workout videos into actionable posture insights using **Computer Vision**, **Machine Learning**, and **Full-Stack Engineering**.
 
 <p align="center">
-  <img src="docs/images/banner.png" alt="PostureIQ Banner">
+  <img src="Docs/Readme_Images/ReadmeBanner.png" alt="PostureIQ Banner">
 </p>
 
 <p align="center">
@@ -26,6 +26,7 @@ Transform workout videos into actionable posture insights using **Computer Visio
 * [🚀 Overview](#-overview)
 * [🌟 Project Highlights](#-project-highlights)
 * [✨ Features](#-features)
+* [🏗️ System Flow](#-System-Flow)
 * [🏗️ System Architecture](#️-system-architecture)
 * [🔄 Workflow](#-end-to-end-workflow)
 * [🏋️ Supported Exercises](#️-supported-exercises)
@@ -209,19 +210,25 @@ The highest validation model was not always selected for deployment. Production 
 
 ## Home Page
 
-![Home](docs/screenshots/home.png)
+![Home](Docs/Readme_Images/Home.png)
 
 ## Dashboard
 
-![Dashboard](docs/screenshots/dashboard.png)
+![Dashboard](Docs/Readme_Images/DashBoard.png)
 
 ## Exercise Analysis
-
-![Analysis](docs/screenshots/analysis.png)
+#Bicep_Curls
+![Analysis](Docs/Readme_Images/Bicep_CurlResult.png)
+#Lunges
+![Analysis](Docs/Readme_Images/LungesResult.png)
+#Plank
+![Analysis](Docs/Readme_Images/PlankResult.png)
+#Squat
+![Analysis](Docs/Readme_Images/SquatsResult.png)
 
 ## Output Video
 
-![Output](docs/screenshots/output.png)
+![Output](Docs/Readme_Images/WorkingApp.png)
 
 <p align="right"><a href="#-navigation">⬆️ Back to Top</a></p>
 
@@ -263,35 +270,102 @@ The highest validation model was not always selected for deployment. Production 
 <p align="right"><a href="#-navigation">⬆️ Back to Top</a></p>
 
 ---
+## 🏗️ System Flow
 
+```text
+User
+ │
+ ▼
+Frontend (Next.js)
+ │
+ │ Upload Video / Live Camera
+ ▼
+FastAPI Backend
+ │
+ ▼
+MediaPipe Landmark Detection
+ │
+ ▼
+Feature Extraction
+ │
+ ▼
+Exercise-specific ML Models
+ │
+ ├── Bicep Curl Model
+ ├── Squat Model
+ ├── Plank Model
+ └── Lunge Model
+ │
+ ▼
+Prediction & Feedback Engine
+ │
+ ▼
+Frontend Dashboard
+```
+<p align="right"><a href="#-navigation">⬆️ Back to Top</a></p>
+
+---
 # 📂 Repository Structure
 
 ```text
-PostureIQ
+PostureIQ/
 │
-├── frontend
-│   ├── app
-│   ├── components
-│   └── pages
+├── 📁 Frontend/                     # Next.js + TypeScript UI
+│   ├── app/
+│   │   ├── components/             # Reusable UI components
+│   │   │   ├── LiveCam/
+│   │   │   ├── CameraFeed.tsx
+│   │   │   ├── ExerciseSidebar.tsx
+│   │   │   ├── OutputCanvas.tsx
+│   │   │   └── ...
+│   │   │
+│   │   ├── context/                # Authentication state
+│   │   │   └── AuthContext.tsx
+│   │   │
+│   │   ├── Dashboard/
+│   │   ├── Login/
+│   │   ├── Signup/
+│   │   ├── Profile/
+│   │   ├── History/
+│   │   └── Workouts/
+│   │
+│   ├── public/                     # Static assets
+│   └── package.json
 │
-├── backend
-│   ├── routes
-│   ├── services
-│   ├── inference
-│   └── models
+├── 📁 Backend/                      # FastAPI Backend
+│   ├── app/
+│   │   ├── main.py                 # API entry point
+│   │   │
+│   │   ├── routers/
+│   │   │   └── predict.py          # Prediction endpoints
+│   │   │
+│   │   ├── services/
+│   │   │   └── video_processor.py  # MediaPipe + ML pipeline
+│   │   │
+│   │   ├── ml_models/
+│   │   │   ├── bicep_model/
+│   │   │   ├── squat_model/
+│   │   │   ├── plank_model/
+│   │   │   └── lunge_model/
+│   │   │
+│   │   ├── database/              # DB connection layer
+│   │   ├── db_models/             # Database models
+│   │   ├── schemas/               # API request/response schemas
+│   │   ├── uploads/               # Uploaded videos
+│   │   ├── outputs/               # Processed outputs
+│   │   └── utils/                 # Helper functions
+│   │
+│   └── requirements.txt
 │
-├── ml
-│   ├── datasets
-│   ├── notebooks
-│   ├── training
-│   └── evaluation
+├── 📁 Docs/
+│   ├── Readme_Images/             # README assets
+│   ├── SystemArchitecture.png
+│   ├── FrontendArchitecture.png
+│   ├── BackendArchitecture.png
+│   └── PostureIQ.pdf
 │
-├── docs
-│   ├── Report.pdf
-│   ├── Images
-│   └── Screenshots
-│
-└── README.md
+├── README.md
+└── .gitignore
 ```
 
 <p align="right"><a href="#-navigation">⬆️ Back to Top</a></p>
@@ -316,9 +390,11 @@ npm run dev
 ```
 
 ### Backend
-
+make sure you have pyhton-3.10 is installed
 ```bash
 cd backend
+py-3.10 -m venv venv
+venv/Scripts/activate
 pip install -r requirements.txt
 uvicorn main:app --reload
 ```
