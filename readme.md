@@ -1,9 +1,3 @@
-# 🏋️ PostureIQ
-
-### AI-Powered Fitness Analysis Platform
-
-Transform workout videos into actionable posture insights using **Computer Vision**, **Machine Learning**, and **Full-Stack Engineering**.
-
 <p align="center">
   <img src="Docs/Readme_Images/ReadmeBanner.png" alt="PostureIQ Banner">
 </p>
@@ -26,7 +20,6 @@ Transform workout videos into actionable posture insights using **Computer Visio
 * [🚀 Overview](#-overview)
 * [🌟 Project Highlights](#-project-highlights)
 * [✨ Features](#-features)
-* [🏗️ System Flow](#-System-Flow)
 * [🏗️ System Architecture](#️-system-architecture)
 * [🔄 Workflow](#-end-to-end-workflow)
 * [🏋️ Supported Exercises](#️-supported-exercises)
@@ -110,33 +103,40 @@ Unlike traditional fitness trackers that focus only on workout quantity, Posture
 <p align="right"><a href="#-navigation">⬆️ Back to Top</a></p>
 
 ---
-
 # 🏗️ System Architecture
 
-![Architecture](docs/images/system_architecture.png)
-
-### High-Level Architecture
-
+### High Level Architecture
+![Architecture](Docs/Readme_Images/SystemArchitecture.png)
 ```text
-          User
-            │
-            ▼
-      Next.js Frontend
-            │
-            ▼
-       FastAPI Backend
-            │
-    ┌───────┼────────┐
-    ▼                ▼
-MediaPipe        ML Models
-    │                │
-    └───────┬────────┘
-            ▼
-      Analytics Engine
-            ▼
-     Annotated Results
+User
+ │
+ ▼
+Frontend (Next.js)
+ │
+ │ Upload Video / Live Camera
+ ▼
+FastAPI Backend
+ │
+ ▼
+MediaPipe Landmark Detection
+ │
+ ▼
+Feature Extraction
+ │
+ ▼
+Exercise-specific ML Models
+ │
+ ├── Bicep Curl Model
+ ├── Squat Model
+ ├── Plank Model
+ └── Lunge Model
+ │
+ ▼
+Prediction & Feedback Engine
+ │
+ ▼
+Frontend Dashboard
 ```
-
 <p align="right"><a href="#-navigation">⬆️ Back to Top</a></p>
 
 ---
@@ -198,6 +198,39 @@ Annotated Output Video
 | Lunges     | Random Forest  | 84.19%   |
 | Squat      | SGDC           | 99.30%   |
 
+<details open>
+<summary><b>🏋️ Exercise Analysis Results</b></summary>
+
+<br>
+
+<table>
+<tr>
+<td align="center">
+<b>Bicep Curls</b><br>
+<img src="Docs/Readme_Images/Bicep_CurlResult.png" width="450">
+</td>
+
+<td align="center">
+<b>Lunges</b><br>
+<img src="Docs/Readme_Images/LungesResult.png" width="450">
+</td>
+</tr>
+
+<tr>
+<td align="center">
+<b>Plank</b><br>
+<img src="Docs/Readme_Images/PlankResult.png" width="450">
+</td>
+
+<td align="center">
+<b>Squat</b><br>
+<img src="Docs/Readme_Images/SquatsResult.png" width="450">
+</td>
+</tr>
+</table>
+
+</details>
+
 ### Key Observation
 
 The highest validation model was not always selected for deployment. Production models were chosen based on inference stability, frame-wise processing efficiency, and integration reliability.
@@ -215,16 +248,6 @@ The highest validation model was not always selected for deployment. Production 
 ## Dashboard
 
 ![Dashboard](Docs/Readme_Images/DashBoard.png)
-
-## Exercise Analysis
-#Bicep_Curls
-![Analysis](Docs/Readme_Images/Bicep_CurlResult.png)
-#Lunges
-![Analysis](Docs/Readme_Images/LungesResult.png)
-#Plank
-![Analysis](Docs/Readme_Images/PlankResult.png)
-#Squat
-![Analysis](Docs/Readme_Images/SquatsResult.png)
 
 ## Output Video
 
@@ -267,41 +290,6 @@ The highest validation model was not always selected for deployment. Production 
 
 * Supabase
 
-<p align="right"><a href="#-navigation">⬆️ Back to Top</a></p>
-
----
-## 🏗️ System Flow
-
-```text
-User
- │
- ▼
-Frontend (Next.js)
- │
- │ Upload Video / Live Camera
- ▼
-FastAPI Backend
- │
- ▼
-MediaPipe Landmark Detection
- │
- ▼
-Feature Extraction
- │
- ▼
-Exercise-specific ML Models
- │
- ├── Bicep Curl Model
- ├── Squat Model
- ├── Plank Model
- └── Lunge Model
- │
- ▼
-Prediction & Feedback Engine
- │
- ▼
-Frontend Dashboard
-```
 <p align="right"><a href="#-navigation">⬆️ Back to Top</a></p>
 
 ---
