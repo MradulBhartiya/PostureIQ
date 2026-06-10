@@ -107,36 +107,6 @@ Unlike traditional fitness trackers that focus only on workout quantity, Posture
 
 ### High Level Architecture
 ![Architecture](Docs/Readme_Images/SystemArchitecture.png)
-```text
-User
- │
- ▼
-Frontend (Next.js)
- │
- │ Upload Video / Live Camera
- ▼
-FastAPI Backend
- │
- ▼
-MediaPipe Landmark Detection
- │
- ▼
-Feature Extraction
- │
- ▼
-Exercise-specific ML Models
- │
- ├── Bicep Curl Model
- ├── Squat Model
- ├── Plank Model
- └── Lunge Model
- │
- ▼
-Prediction & Feedback Engine
- │
- ▼
-Frontend Dashboard
-```
 <p align="right"><a href="#-navigation">⬆️ Back to Top</a></p>
 
 ---
