@@ -342,7 +342,7 @@ cd PostureIQ
 ### Frontend
 
 ```bash
-cd frontend
+cd Frontend
 npm install
 npm run dev
 ```
@@ -350,11 +350,11 @@ npm run dev
 ### Backend
 make sure you have pyhton-3.10 is installed
 ```bash
-cd backend
-py-3.10 -m venv venv
+cd Backend
+py -3.10 -m venv venv
 venv/Scripts/activate
 pip install -r requirements.txt
-uvicorn main:app --reload
+uvicorn app.main:app --reload
 ```
 
 <p align="right"><a href="#-navigation">⬆️ Back to Top</a></p>
