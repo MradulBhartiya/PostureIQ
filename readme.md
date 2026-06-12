@@ -348,7 +348,8 @@ npm run dev
 ```
 
 ### Backend
-make sure you have pyhton-3.10 is installed
+make sure you have python -3.10 is installed link: <p align="center"><a href="https://www.python.org/downloads/release/python-31020/"> Download:🐍Python-3.10</a></p>
+
 ```bash
 cd Backend
 py -3.10 -m venv venv
