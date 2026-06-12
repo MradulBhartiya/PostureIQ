@@ -42,6 +42,7 @@ Backend/**/*.pyc
 
 # Uploads (if you don’t want them in git)
 Backend/app/uploads/
+Backend/app/outputs/
 
 # Env files
 Backend/.env
